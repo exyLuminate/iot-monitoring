@@ -30,12 +30,21 @@ class SensorController extends Controller
             'sound_level' => 'required|integer',
         ]);
 
-        // 2. Logika penentuan status (Bisa disesuaikan nanti saat kalibrasi)
-        $status = "Kondusif";
+        // 2. Logika penentuan status yang lebih dinamis (Menangani Edge Case)
+        $issues = []; 
+
         if ($request->sound_level == 1) {
-            $status = "Terlalu Bising";
-        } elseif ($request->light_level < 300) { 
-            $status = "Terlalu Gelap";
+            $issues[] = "Bising";
+        }
+        if ($request->light_level < 300) { 
+            $issues[] = "Gelap";
+        }
+
+        // Jika array kosong, berarti kondusif. Jika ada isinya, gabungkan kata.
+        if (empty($issues)) {
+            $status = "Kondusif";
+        } else {
+            $status = "Terlalu " . implode(" & ", $issues); 
         }
 
         // 3. Simpan data langsung ke MySQL di hosting
